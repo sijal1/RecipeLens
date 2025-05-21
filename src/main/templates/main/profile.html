@@ -1,0 +1,54 @@
+{% extends "main/base.html" %}
+{% load static %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-info">
+            <h2>{{ user.username }}'s Profile</h2>
+            <p class="stats">Total Uploads: <span>{{ total_uploads }}</span></p>
+        </div>
+    </div>
+
+    {% if last_upload %}
+    <div class="last-upload-section">
+        <h3>Last Upload</h3>
+        <div class="last-upload-card">
+            <div class="upload-image">
+                <img src="{{ last_upload.uploaded_image.url }}" alt="Last Uploaded Image">
+            </div>
+            <div class="upload-details">
+                <p class="timestamp"><i class="far fa-clock"></i> {{ last_upload.timestamp|date:"F j, Y, g:i a" }}</p>
+                <p class="recipe"><i class="fas fa-utensils"></i> {{ last_upload.predicted_recipe }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if all_uploads %}
+    <div class="upload-history-section">
+        <h3>Upload History</h3>
+        <div class="upload-grid">
+            {% for upload in all_uploads %}
+            <div class="upload-card">
+                <div class="upload-image">
+                    <img src="{{ upload.uploaded_image.url }}" alt="Uploaded food image">
+                </div>
+                <div class="upload-details">
+                    <p class="recipe">{{ upload.predicted_recipe }}</p>
+                    <p class="timestamp">{{ upload.timestamp|date:"M j, Y" }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="no-uploads">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>No uploads yet! Try uploading some food images to get recipe predictions.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

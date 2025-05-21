@@ -1,0 +1,165 @@
+{% load static %}
+<!-- base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="{% static 'main/icons/scan.png' %}">
+    <title>{% block title %}Recipe Lens{% endblock %}</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'main/style.css' %}">
+</head>
+<body>
+    <!-- Toast Notifications Container -->
+    <div class="toast-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast" role="alert">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+                    <div>{{ message }}</div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo-section">
+                <a href="{% url 'home_page' %}" class="brand">
+                    <i class="fas fa-camera"></i>
+                    <h1>Recipe Lens</h1>
+                </a>
+            </div>
+            <div class="nav-links">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profile' %}" class="nav-link">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                    <form action="{% url 'logout' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-link btn-logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-link">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
+                    </a>
+                    <a href="{% url 'signup' %}" class="nav-link">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Sign Up</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="layout-container">
+        <!-- Sidebar -->
+        {% if user.is_authenticated %}
+        <aside class="sidebar">
+            <div class="thread-list">
+                {% if user_uploads %}
+                    {% for upload in user_uploads %}
+                    <div class="thread-item {% if upload.id == current_upload.id %}active{% endif %}" data-upload-id="{{ upload.id }}">
+                        <div class="thread-image">
+                            <img src="{{ upload.uploaded_image.url }}" alt="Uploaded food image">
+                        </div>
+                        <div class="thread-content">
+                            <p class="thread-title">{{ upload.predicted_recipe }}</p>
+                            <p class="thread-ingredients">{{ upload.ingredients|truncatechars:50 }}</p>
+                            <p class="thread-timestamp">{{ upload.timestamp|date:"M j, Y" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="thread-item">
+                        <div class="thread-content">
+                            <p class="thread-title">No uploads yet</p>
+                            <p class="thread-ingredients">Try uploading some food images to get started!</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </aside>
+
+        <!-- Toggle Sidebar Button -->
+        <button class="toggle-sidebar" id="toggleSidebar">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        {% endif %}
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-container page-transition">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <i class="fas fa-camera"></i>
+                <h3>Recipe Lens</h3>
+            </div>
+            <div class="footer-links">
+                <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+            </div>
+            <div class="footer-credits">
+                <p>Made with <i class="fas fa-heart"></i> by Recipe Lens Team</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Toggle Sidebar
+        document.getElementById('toggleSidebar')?.addEventListener('click', function() {
+            document.body.classList.toggle('sidebar-collapsed');
+            const icon = this.querySelector('i');
+            if (document.body.classList.contains('sidebar-collapsed')) {
+                icon.classList.remove('fa-chevron-left');
+                icon.classList.add('fa-chevron-right');
+            } else {
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-left');
+            }
+        });
+
+        // Thread Item Click Handler
+        document.querySelectorAll('.thread-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const uploadId = this.dataset.uploadId;
+                if (uploadId) {
+                    window.location.href = `/recipe/${uploadId}/`;
+                }
+            });
+        });
+
+        // Toast Notifications
+        document.querySelectorAll('.toast').forEach(toast => {
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

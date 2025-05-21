@@ -1,0 +1,200 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% load recipe_filters %}
+
+{% block title %}Home - Recipe Lens{% endblock %}
+{% block content %}
+<div class="image-upload-area" id="dropZone">
+    <div class="upload-icon">
+        <i class="fas fa-cloud-upload-alt"></i>
+    </div>
+    <h2>
+        <i class="fas fa-camera"></i>
+        Discover Indian Recipes from Your Photos
+    </h2>
+    <p class="upload-text">Drag and drop your image here or use the buttons below</p>
+    
+    <div class="uploaded-image-display">
+        {% if uploaded_image %}
+            <img id="up-image" src="data:image/png;base64,{{uploaded_image}}" alt="Uploaded food image">
+        {% else %}
+            <img id="up-image" src="https://placehold.co/600x400/2a2a2a/ffffff?text=Upload+Your+Food+Image&font=Poppins" alt="Upload a food image">
+        {% endif %}
+    </div>
+    
+    <form method="post" enctype="multipart/form-data" class="upload-form">
+        {% csrf_token %}
+        <div class="upload-buttons">
+            <label class="btn-primary">
+                <i class="fas fa-upload"></i>
+                <span>Upload Image</span>
+                <input type="file" name="image" accept="image/*" id="id_image" style="display: none;"
+                    onchange="handleImageUpload(this)">
+            </label>
+            <label class="btn-primary">
+                <i class="fas fa-camera"></i>
+                <span>Take Photo</span>
+                <input type="file" name="image" accept="image/*" capture="environment" id="cap_image" style="display: none;"
+                    onchange="handleImageUpload(this)">
+            </label>
+        </div>
+        <button type="submit" class="btn-primary process-btn">
+            <i class="fas fa-magic"></i>
+            <span>Generate Recipe</span>
+        </button>
+    </form>
+</div>
+
+{% if recipe_list_to_return %}
+<div class="results-section">
+    <h3 class="section-title">
+        <i class="fas fa-utensils"></i>
+        Possible Matches
+    </h3>
+    
+    <div class="recipe-grid">
+        {% for recipe in recipe_list_to_return %}
+        <div class="recipe-card">
+            <h2 class="recipe_name">{{ recipe.0 }}</h2>
+            <div class="cooking-info">
+                <i class="far fa-clock"></i>
+                {{ recipe.2 }}
+            </div>
+            <div class="ing_dir_display_area">
+                <div class="ingredients-section">
+                    <h3><i class="fas fa-list"></i> Ingredients</h3>
+                    <div class="ingredients-list">
+                        {% with ingredients=recipe.3|split:',' %}
+                            {% for ingredient in ingredients %}
+                                {% with ing_text=ingredient|strip %}
+                                    {% if ing_text|length > 0 %}
+                                        <p class="step">{{ forloop.counter }}. {{ ing_text }}</p>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="directions-section">
+                    <h3><i class="fas fa-utensils"></i> Directions</h3>
+                    <div class="directions-list">
+                        {% with steps=recipe.4|split:'.' %}
+                            {% for step in steps %}
+                                {% with step_text=step|strip %}
+                                    {% if step_text|length > 0 %}
+                                        <p class="step">{{ forloop.counter }}. {{ step_text }}{% if not step_text|slice:"-1:" == "." %}.{% endif %}</p>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if similar_recipe_list %}
+    <button onclick="display_more()" class="btn-primary more-recipes">
+        <i class="fas fa-plus-circle"></i>
+        <span>Show More Recipes</span>
+    </button>
+    {% endif %}
+</div>
+
+<div id="extra_results" style="display: none;">
+    <div class="recipe-grid">
+        {% for recipe in similar_recipe_list %}
+        <div class="recipe-card">
+            <h2 class="recipe_name">{{ recipe.0 }}</h2>
+            <div class="cooking-info">
+                <i class="far fa-clock"></i>
+                {{ recipe.2 }}
+            </div>
+            <div class="ing_dir_display_area">
+                <div class="ingredients-section">
+                    <h3><i class="fas fa-list"></i> Ingredients</h3>
+                    <div class="ingredients-list">
+                        {% with ingredients=recipe.3|split:',' %}
+                            {% for ingredient in ingredients %}
+                                {% with ing_text=ingredient|strip %}
+                                    {% if ing_text|length > 0 %}
+                                        <p class="step">{{ forloop.counter }}. {{ ing_text }}</p>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+                </div>
+                <div class="directions-section">
+                    <h3><i class="fas fa-utensils"></i> Directions</h3>
+                    <div class="directions-list">
+                        {% with steps=recipe.4|split:'.' %}
+                            {% for step in steps %}
+                                {% with step_text=step|strip %}
+                                    {% if step_text|length > 0 %}
+                                        <p class="step">{{ forloop.counter }}. {{ step_text }}{% if not step_text|slice:"-1:" == "." %}.{% endif %}</p>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<script>
+    function handleImageUpload(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('up-image');
+                img.src = e.target.result;
+                img.classList.add('fade-in');
+                setTimeout(() => img.classList.remove('fade-in'), 500);
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function display_more() {
+        const extraResults = document.getElementById('extra_results');
+        const btn = document.querySelector('.more-recipes');
+        const isHidden = extraResults.style.display === "none";
+        
+        extraResults.style.display = isHidden ? "block" : "none";
+        btn.innerHTML = isHidden ? 
+            '<i class="fas fa-minus-circle"></i><span>Show Less</span>' : 
+            '<i class="fas fa-plus-circle"></i><span>Show More Recipes</span>';
+        
+        if (isHidden) {
+            extraResults.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    // Handle file drop
+    const dropZone = document.getElementById('dropZone');
+    if (dropZone) {
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            
+            if (file && file.type.startsWith('image/')) {
+                const input = document.getElementById('id_image');
+                input.files = dt.files;
+                handleImageUpload(input);
+            }
+        });
+    }
+</script>
+{% endblock %}
+
+

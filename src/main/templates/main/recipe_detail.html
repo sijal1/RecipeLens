@@ -1,0 +1,232 @@
+{% extends "main/base.html" %}
+{% load static %}
+{% load recipe_filters %}
+
+{% block title %}{{ upload.predicted_recipe }} - Recipe Lens{% endblock %}
+
+{% block content %}
+<div class="recipe-detail">
+    <div class="recipe-header">
+        <h1>{{ upload.predicted_recipe }}</h1>
+        <p class="timestamp">
+            <i class="far fa-clock"></i>
+            {{ upload.timestamp|date:"F j, Y, g:i a" }}
+        </p>
+    </div>
+
+    <div class="recipe-content">
+        <div class="recipe-image">
+            <img src="{{ upload.uploaded_image.url }}" alt="{{ upload.predicted_recipe }}">
+        </div>
+
+        {% if recipe %}
+        <div class="recipe-info">
+            <div class="recipe-stats">
+                <div class="stat">
+                    <i class="fas fa-fire"></i>
+                    <span>{{ recipe.calories }}</span>
+                    <label>Calories</label>
+                </div>
+                <div class="stat">
+                    <i class="far fa-clock"></i>
+                    <span>{{ recipe.cooking_time }}</span>
+                    <label>Cooking Time</label>
+                </div>
+            </div>
+
+            <div class="recipe-section ingredients">
+                <h2><i class="fas fa-list"></i> Ingredients</h2>
+                <ul>
+                    {% for ingredient in recipe.ingredients|split:',' %}
+                    <li>{{ ingredient|strip }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="recipe-section directions">
+                <h2><i class="fas fa-utensils"></i> Directions</h2>
+                <ol>
+                    {% for step in recipe.directions|split:'.' %}
+                        {% if step|strip %}
+                            {% with step_text=step|strip %}
+                                {% if step_text|length > 0 %}
+                                    <li>{{ step_text }}{% if not step_text|slice:"-1:" == "." %}.{% endif %}</li>
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                </ol>
+            </div>
+        </div>
+        {% else %}
+        <div class="recipe-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>Recipe details not found. This might be because the recipe is no longer in our database.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.recipe-detail {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.recipe-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.recipe-header h1 {
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.timestamp {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.recipe-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.recipe-image {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.recipe-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.recipe-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.recipe-stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.stat {
+    flex: 1;
+    text-align: center;
+    background: var(--card-bg);
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.stat i {
+    font-size: 1.5rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat span {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.stat label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.recipe-section {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.recipe-section h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.recipe-section h2 i {
+    color: var(--primary);
+}
+
+.ingredients ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+}
+
+.ingredients li {
+    background: var(--gray);
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.directions ol {
+    padding-left: 1.5rem;
+    color: var(--text-primary);
+}
+
+.directions li {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.recipe-error {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    background: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+.recipe-error i {
+    font-size: 3rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+}
+
+.recipe-error p {
+    color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+    .recipe-content {
+        grid-template-columns: 1fr;
+    }
+
+    .recipe-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .ingredients ul {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %} 
