@@ -19,9 +19,7 @@ pip install -r requirements.txt
 
 3. Create a .env file in the project root with the following content:
 ```
-DJANGO_SECRET_KEY=your-secret-key-here
-DJANGO_DEBUG=True
-DATABASE_URL=sqlite:///src/db.sqlite3
+removed
 ```
 
 4. Apply database migrations:
